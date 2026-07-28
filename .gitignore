@@ -105,3 +105,10 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Sensitive Resources & API Secrets
+/[Aa]ssets/[Rr]esources/[Ss]ecrets/
+/[Aa]ssets/[Rr]esources/[Ss]ecrets.meta
+*.secret.json
+*.secret.json.meta
+
