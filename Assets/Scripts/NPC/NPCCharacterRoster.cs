@@ -30,7 +30,6 @@ namespace Divinatius.NPC
         {
             if (characterProfiles.Count == 0)
             {
-                // Create runtime default profiles for all 9 characters if SO assets not assigned
                 characterProfiles = CreateDefaultRoster();
             }
 
@@ -59,15 +58,15 @@ namespace Divinatius.NPC
         {
             return new List<NPCProfileSO>
             {
-                CreateNPC("npc_01_celeste", "Celeste", "High Priestess of the Astral Temple. Wise, calm, speaks with reverence and deep ancient knowledge of the realm.", "21m00Tcm4TlvDq8ikWAM"),
-                CreateNPC("npc_02_kael", "Kael", "A bold rogue scout. Quick-witted, skeptical of authority, always looking for high ground and treasure.", "AZnzlk1XvdvUeBnXmlld"),
-                CreateNPC("npc_03_ignatius", "Ignatius", "Master Blacksmith. Gruff, practical, speaks with pride about steel, weapons, and heavy armor.", "EXAVITQu4vr4xnSDxMaL"),
-                CreateNPC("npc_04_lyra", "Lyra", "Wandering Bard. Cheerful, poetic, loves telling stories and singing ballads of heroes and dragons.", "ErXwobaYiN019PkySvjV"),
-                CreateNPC("npc_05_thorne", "Thorne", "Captain of the Town Guard. Duty-bound, strict, focused on safety and tactical threats.", "MF3mGyEYCl7XYWbV9V6O"),
-                CreateNPC("npc_06_vespera", "Vespera", "Shadow Alchemist. Secretive, analytical, fascinated by rare herbs, potions, and forbidden arcana.", "TxGEqnHWrfWFTfGW9XjX"),
-                CreateNPC("npc_07_orion", "Orion", "Star Gazer & Astronomer. Soft-spoken scholar, speaks in metaphors about constellations and destiny.", "VR6AewLTigWG4xSOukaG"),
-                CreateNPC("npc_08_maeve", "Maeve", "Village Elder & Healer. Warm, maternal, concerned with the well-being of the townsfolk and nature.", "pNInz6obpgDQGcFmaJgB"),
-                CreateNPC("npc_09_zephyr", "Zephyr", "Outlaw Merchant & Smuggler. Charismatic, shrewd bargainer, always knows rumors and illegal goods.", "yoZ06aGfZXNShxVf3o12")
+                CreateNPC("npc_01_celeste", "Celeste", "High Priestess of the Astral Temple. Wise, calm, speaks with reverence and deep ancient knowledge of the realm.", "EXAVITQu4vr4xnSDxMaL"), // Sarah
+                CreateNPC("npc_02_kael", "Kael", "A bold rogue scout. Quick-witted, skeptical of authority, always looking for high ground and treasure.", "pNInz6obpgDQGcFmaJgB"), // Adam
+                CreateNPC("npc_03_ignatius", "Ignatius", "Master Blacksmith. Gruff, practical, speaks with pride about steel, weapons, and heavy armor.", "VR6AewLTigWG4xSOukaG"), // Arnold
+                CreateNPC("npc_04_lyra", "Lyra", "Wandering Bard. Cheerful, poetic, loves telling stories and singing ballads of heroes and dragons.", "21m00Tcm4TlvDq8ikWAM"), // Rachel
+                CreateNPC("npc_05_thorne", "Thorne", "Captain of the Town Guard. Duty-bound, strict, focused on safety and tactical threats.", "ErXwobaYiN019PkySvjV"), // Antoni
+                CreateNPC("npc_06_vespera", "Vespera", "Shadow Alchemist. Secretive, analytical, fascinated by rare herbs, potions, and forbidden arcana.", "AZnzlk1XvdvUeBnXmlld"), // Domi
+                CreateNPC("npc_07_orion", "Orion", "Star Gazer & Astronomer. Soft-spoken scholar, speaks in metaphors about constellations and destiny.", "ErXwobaYiN019PkySvjV"), // Antoni
+                CreateNPC("npc_08_maeve", "Maeve", "Village Elder & Healer. Warm, maternal, concerned with the well-being of the townsfolk and nature.", "EXAVITQu4vr4xnSDxMaL"), // Sarah
+                CreateNPC("npc_09_zephyr", "Zephyr", "Outlaw Merchant & Smuggler. Charismatic, shrewd bargainer, always knows rumors and illegal goods.", "pNInz6obpgDQGcFmaJgB") // Adam
             };
         }
 

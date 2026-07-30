@@ -25,14 +25,33 @@ namespace Divinatius.NPC
     [CreateAssetMenu(fileName = "NewNPCProfile", menuName = "Divinatius/NPC Profile")]
     public class NPCProfileSO : ScriptableObject
     {
-        [Header("Identity")]
-        public string characterId; // e.g. "npc_01_celeste"
-        public string characterName;
-        [TextArea(3, 8)] public string systemPersonalityPrompt;
-        
-        [Header("ElevenLabs Voice Settings")]
-        public string elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM"; // Default Rachel or custom voice ID
-        
+        [Header("Identity & Naming")]
+        [Tooltip("Unique ID for saving conversation memory for this NPC.")]
+        public string characterId = "npc_custom";
+
+        [Tooltip("Display Name of the NPC (e.g. Celeste the High Priestess).")]
+        public string characterName = "Custom NPC";
+
+        [Tooltip("Short Bio or Description of the NPC (e.g. High Priestess of the Astral Temple).")]
+        [TextArea(2, 5)]
+        public string characterDescription = "A knowledgeable character in the town of Divinatius.";
+
+        [Header("AI Personality & Prompt")]
+        [Tooltip("System instructions and AI personality prompt for Gemini API.")]
+        [TextArea(5, 15)] 
+        public string systemPersonalityPrompt = "You are a knowledgeable guide in Divinatius. Speak with enthusiasm, offer advice, and answer questions thoughtfully.";
+
+        [Header("Voice & Synthesis Settings")]
+        [Tooltip("ElevenLabs Voice ID for text-to-speech voice output.")]
+        public string elevenLabsVoiceId = "EXAVITQu4vr4xnSDxMaL";
+
+        [Header("Visuals & 3D Model Customization")]
+        [Tooltip("Optional 3D Model/Prefab to use for this NPC character's visual body.")]
+        public GameObject npc3DModelPrefab;
+
+        [Tooltip("Color tint applied to the NPC's mesh material.")]
+        public Color npcColor = Color.white;
+
         [Header("Visual Novel Portraits")]
         public Sprite npcPortraitSprite;
         public Sprite playerMcPortraitSprite;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Divinatius.NPC;
 using Divinatius.Dialogue;
 
@@ -7,8 +8,9 @@ namespace Divinatius.Player
     public class PlayerInteraction : MonoBehaviour
     {
         [Header("Interaction Settings")]
-        [SerializeField] private float interactionRadius = 3.0f;
-        [SerializeField] private LayerMask npcLayerMask = ~0; // Default to all layers unless specified
+        [SerializeField] private float interactionRadius = 3.0f; // Max 3 meters distance
+        [SerializeField] private float maxLookAngle = 60.0f;      // Max cone of vision angle
+        [SerializeField] private LayerMask npcLayerMask = ~0;
         [SerializeField] private KeyCode interactKey = KeyCode.E;
 
         private NPCInteractable _currentNPC;
@@ -23,12 +25,37 @@ namespace Divinatius.Player
         {
             DetectNPC();
 
-            if (_currentNPC != null && Input.GetKeyDown(interactKey))
+            bool isDialogueActive = DialogueUIController.Instance != null && DialogueUIController.Instance.IsDialogueActive;
+            bool isPhoneOpen = PhoneUIController.Instance != null && PhoneUIController.Instance.IsPhoneOpen;
+            bool isMenuOpen = isDialogueActive || isPhoneOpen;
+
+            if (_currentNPC != null && !isMenuOpen)
             {
-                if (DialogueUIController.Instance != null && !DialogueUIController.Instance.IsDialogueActive)
+                string npcName = _currentNPC.NPCProfile != null ? _currentNPC.NPCProfile.characterName : "";
+                InteractionPromptUI.Instance.ShowPrompt(_currentNPC.transform, npcName);
+            }
+            else
+            {
+                if (InteractionPromptUI.Instance != null)
                 {
-                    StartDialogueWithNPC(_currentNPC);
+                    InteractionPromptUI.Instance.HidePrompt();
                 }
+            }
+
+            bool interactPressed = false;
+            var keyboard = Keyboard.current;
+            if (keyboard != null)
+            {
+                interactPressed = keyboard.eKey.wasPressedThisFrame;
+            }
+
+            if (_currentNPC != null && interactPressed && !isMenuOpen)
+            {
+                if (InteractionPromptUI.Instance != null)
+                {
+                    InteractionPromptUI.Instance.HidePrompt();
+                }
+                StartDialogueWithNPC(_currentNPC);
             }
         }
 
@@ -38,16 +65,43 @@ namespace Divinatius.Player
             NPCInteractable closestNPC = null;
             float minDistance = float.MaxValue;
 
+            Camera mainCam = Camera.main;
+            Vector3 playerForward = transform.forward;
+            playerForward.y = 0;
+
             foreach (var hit in hits)
             {
                 NPCInteractable npc = hit.GetComponent<NPCInteractable>();
+                if (npc == null) npc = hit.GetComponentInParent<NPCInteractable>();
+
                 if (npc != null)
                 {
-                    float dist = Vector3.Distance(transform.position, hit.transform.position);
-                    if (dist < minDistance)
+                    float dist = Vector3.Distance(transform.position, npc.transform.position);
+                    if (dist <= interactionRadius)
                     {
-                        minDistance = dist;
-                        closestNPC = npc;
+                        // Check player facing direction
+                        Vector3 dirToNPC = (npc.transform.position - transform.position).normalized;
+                        dirToNPC.y = 0;
+
+                        float playerAngle = Vector3.Angle(playerForward, dirToNPC);
+
+                        // Check camera facing direction if available
+                        bool cameraLooking = true;
+                        if (mainCam != null)
+                        {
+                            Vector3 camDirToNPC = (npc.transform.position - mainCam.transform.position).normalized;
+                            float camAngle = Vector3.Angle(mainCam.transform.forward, camDirToNPC);
+                            cameraLooking = camAngle <= maxLookAngle;
+                        }
+
+                        if (playerAngle <= maxLookAngle && cameraLooking)
+                        {
+                            if (dist < minDistance)
+                            {
+                                minDistance = dist;
+                                closestNPC = npc;
+                            }
+                        }
                     }
                 }
             }
@@ -64,10 +118,20 @@ namespace Divinatius.Player
                 _playerController.ControlsEnabled = false;
             }
 
+            NPCWanderer wanderer = npc.GetComponent<NPCWanderer>();
+            if (wanderer != null)
+            {
+                wanderer.PauseWandering(transform);
+            }
+
             if (DialogueUIController.Instance != null)
             {
-                DialogueUIController.Instance.OpenDialogue(npc.NPCProfile, () =>
+                DialogueUIController.Instance.OpenDialogue(npc.NPCProfile, npc, () =>
                 {
+                    if (wanderer != null)
+                    {
+                        wanderer.ResumeWandering();
+                    }
                     if (_playerController != null)
                     {
                         _playerController.ControlsEnabled = true;

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 namespace Divinatius.Dialogue
 {
@@ -16,9 +17,61 @@ namespace Divinatius.Dialogue
         private AudioClip _recordedClip;
         private Action<string> _onInputSubmitted;
 
+        private void Awake()
+        {
+            SetupInputLayout();
+        }
+
+        private void SetupInputLayout()
+        {
+            if (micRecordButton != null)
+            {
+                micRecordButton.gameObject.SetActive(true);
+                RectTransform micRect = micRecordButton.GetComponent<RectTransform>();
+                if (micRect != null)
+                {
+                    micRect.anchorMin = new Vector2(0.69f, 0f);
+                    micRect.anchorMax = new Vector2(0.82f, 1f);
+                    micRect.offsetMin = Vector2.zero;
+                    micRect.offsetMax = Vector2.zero;
+                }
+            }
+
+            if (micButtonText != null)
+            {
+                micButtonText.gameObject.SetActive(true);
+                micButtonText.text = "🎤 Voice";
+            }
+
+            if (textInputField != null)
+            {
+                RectTransform inputRect = textInputField.GetComponent<RectTransform>();
+                if (inputRect != null)
+                {
+                    inputRect.anchorMin = new Vector2(0f, 0f);
+                    inputRect.anchorMax = new Vector2(0.68f, 1f);
+                    inputRect.offsetMin = Vector2.zero;
+                    inputRect.offsetMax = Vector2.zero;
+                }
+            }
+
+            if (sendButton != null)
+            {
+                RectTransform sendRect = sendButton.GetComponent<RectTransform>();
+                if (sendRect != null)
+                {
+                    sendRect.anchorMin = new Vector2(0.83f, 0f);
+                    sendRect.anchorMax = new Vector2(1.0f, 1f);
+                    sendRect.offsetMin = Vector2.zero;
+                    sendRect.offsetMax = Vector2.zero;
+                }
+            }
+        }
+
         public void Initialize(Action<string> onInputSubmitted)
         {
             _onInputSubmitted = onInputSubmitted;
+            SetupInputLayout();
 
             if (sendButton != null)
             {
@@ -31,13 +84,59 @@ namespace Divinatius.Dialogue
                 micRecordButton.onClick.RemoveAllListeners();
                 micRecordButton.onClick.AddListener(ToggleMicrophoneRecording);
             }
+
+            if (textInputField != null)
+            {
+                textInputField.onEndEdit.RemoveAllListeners();
+                textInputField.onEndEdit.AddListener(OnInputFieldEndEdit);
+            }
+        }
+
+        private void OnInputFieldEndEdit(string text)
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame))
+            {
+                SubmitTextInput();
+            }
         }
 
         private void Update()
         {
-            if (textInputField != null && textInputField.isFocused && Input.GetKeyDown(KeyCode.Return))
+            var keyboard = Keyboard.current;
+            var mouse = Mouse.current;
+
+            bool enterPressed = keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame);
+            bool leftClicked = mouse != null && mouse.leftButton.wasPressedThisFrame;
+
+            // Re-focus text input field when left clicking or typing so player is never locked out of text input
+            if (textInputField != null && !textInputField.isFocused)
             {
-                SubmitTextInput();
+                if (leftClicked || (keyboard != null && keyboard.anyKey.wasPressedThisFrame))
+                {
+                    FocusInputField();
+                }
+            }
+
+            if (enterPressed)
+            {
+                if (_isRecording)
+                {
+                    StopRecordingAndProcess();
+                }
+                else
+                {
+                    SubmitTextInput();
+                }
+            }
+        }
+
+        public void FocusInputField()
+        {
+            if (textInputField != null)
+            {
+                textInputField.Select();
+                textInputField.ActivateInputField();
             }
         }
 
@@ -49,6 +148,7 @@ namespace Divinatius.Dialogue
             {
                 textInputField.text = "";
                 _onInputSubmitted?.Invoke(inputStr);
+                FocusInputField();
             }
         }
 
@@ -73,7 +173,7 @@ namespace Divinatius.Dialogue
             }
 
             _isRecording = true;
-            if (micButtonText != null) micButtonText.text = "🔴 Stop Rec";
+            if (micButtonText != null) micButtonText.text = "🔴 Stop & Send (Enter)";
 
             string device = Microphone.devices[0];
             _recordedClip = Microphone.Start(device, false, 10, 44100);
@@ -84,7 +184,7 @@ namespace Divinatius.Dialogue
         {
             if (!_isRecording) return;
             _isRecording = false;
-            if (micButtonText != null) micButtonText.text = "🎤 Voice STT";
+            if (micButtonText != null) micButtonText.text = "🎤 Voice";
 
             if (Microphone.devices.Length > 0)
             {
@@ -92,10 +192,9 @@ namespace Divinatius.Dialogue
                 Microphone.End(device);
                 Debug.Log("[DialogueInputController] Microphone recording stopped.");
 
-                // For STT: simulate or pass audio buffer to STT endpoint.
-                // Fallback demo text if STT service key is not configured:
                 string recognizedSpeechText = "[Voice Speech-To-Text Input]";
                 _onInputSubmitted?.Invoke(recognizedSpeechText);
+                FocusInputField();
             }
         }
     }
